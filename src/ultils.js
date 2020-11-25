@@ -1,26 +1,25 @@
+const moment = require('moment');
+
 class Utils {
-    async getTimeLabel(page) {
-        const timeResult = [];
-        const TOTAL_TIME_LABEL = await page.$$('.highcharts-xaxis-labels > text');
-        for (let i = 1; i <= TOTAL_TIME_LABEL.length; i++) {
-            const element = await page.$(`.highcharts-xaxis-labels > text:nth-child(${i})`);
-            const TIME_LABEL = await page.evaluate(element => element.textContent, element);
-            const LABEL_X = await page.evaluate(element => element.getAttribute("x"), element);
-            timeResult.push({
-                timeLabel: TIME_LABEL,
-                labelX: LABEL_X
-            })
+    getTime(index) {
+        let currentTime;
+        if (moment().seconds() < 30) {
+            currentTime = moment().startOf('minutes');
+            currentTime.subtract(index * 30, 'seconds')
+        } else if (moment().seconds() >= 30) {
+            currentTime = moment().startOf('minutes').set('second', 30);
+            currentTime.subtract(index * 30, 'seconds')
         }
-        return timeResult
+        return currentTime.format('DD/MM/YYYY HH:mm:ss');
     }
 
     dataFormater(text) {
-        const data = text.split(":");
+        const data = text.split(": ");
         return data[1];
     }
 
-    async getValuePerCandle(page, candleIndex) {
-        let datetime = new Date().toLocaleString();
+    async getValuePerCandle(page, candleIndex, index) {
+        const time = this.getTime(index);
         let O_Result;
         let C_Result;
         let H_Result;
@@ -52,12 +51,12 @@ class Utils {
             Vol_Result = this.dataFormater(Vol_Data);
         }
         return {
-            datetime: datetime,
+            Time: time,
             O: O_Result,
             C: C_Result,
             H: H_Result,
             L: L_Result,
-            Vol: Vol_Result
+            Vol: Vol_Result,
         }
     }
 }
